@@ -31,6 +31,7 @@ function Login() {
       <Button
         variant="contained"
         color="primary"
+        disable={nome.length < 3}
         onClick={() => history.push("/feira")}
       >
         Avançar
