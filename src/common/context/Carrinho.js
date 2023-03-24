@@ -1,4 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
+import { usePagamentoContext } from "./Pagamento";
+import { UsuarioContext } from "./Usuario";
 
 export const CarrinhoContext = createContext();
 CarrinhoContext.displayName = "Carrinho";
@@ -15,7 +17,7 @@ export const CarrinhoProvider = ({ children }) => {
         quantidadeProdutos,
         setQuantidadeProdutos,
         valorTotalCarrinho,
-        setValorTotalCarrinho
+        setValorTotalCarrinho,
       }}
     >
       {children}
@@ -23,8 +25,16 @@ export const CarrinhoProvider = ({ children }) => {
   );
 };
 export const UseCarrinhoContext = () => {
-  const { carrinho, setCarrinho, quantidadeProdutos, setQuantidadeProdutos, valorTotalCarrinho, setValorTotalCarrinho } =
-    useContext(CarrinhoContext);
+  const {
+    carrinho,
+    setCarrinho,
+    quantidadeProdutos,
+    setQuantidadeProdutos,
+    valorTotalCarrinho,
+    setValorTotalCarrinho,
+  } = useContext(CarrinhoContext);
+  const { formasPagamento } = usePagamentoContext();
+  const { setSaldo } =useContext(UsuarioContext);
 
   function mudarQuantidade(id, quantidade) {
     return carrinho.map((itemDoCarrinho) => {
@@ -58,6 +68,11 @@ export const UseCarrinhoContext = () => {
     setCarrinho(mudarQuantidade(id, -1));
   }
 
+  function efetuarCompra() {
+    setCarrinho([]);
+    setSaldo(saldoAtual => saldoAtual - valorTotalCarrinho);
+  }
+
   useEffect(() => {
     const { novoTotal, novaQuantidade } = carrinho.reduce(
       (contador, produto) => ({
@@ -70,8 +85,8 @@ export const UseCarrinhoContext = () => {
       }
     );
     setQuantidadeProdutos(novaQuantidade);
-    setValorTotalCarrinho(novoTotal);
-  }, [carrinho, setQuantidadeProdutos, setValorTotalCarrinho]);
+    setValorTotalCarrinho(novoTotal * formasPagamento.juros);
+  }, [carrinho, setQuantidadeProdutos, setValorTotalCarrinho, formasPagamento]);
 
   return {
     carrinho,
@@ -80,6 +95,7 @@ export const UseCarrinhoContext = () => {
     removerProduto,
     quantidadeProdutos,
     setQuantidadeProdutos,
-    valorTotalCarrinho
+    valorTotalCarrinho,
+    efetuarCompra
   };
 };
